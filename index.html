@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <title>Todo List</title>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: 20px auto; }
+        input { padding: 8px; width: 70%; }
+        button { padding: 8px 16px; }
+        .todo { margin: 10px 0; padding: 10px; border: 1px solid #ddd;  }
+    </style>
+    <meta charset="utf-8" />
+</head>
+<body>
+    <h1>Todo List</h1>
+    <input type="text" id="taskInput" placeholder="Enter a task" />
+    <button onclick="addTodo()">Add Task</button>
+    <div id="todoList"></div>
+
+    <script>
+        async function fetchTodos() {
+            const response = await fetch('http://localhost:8000/todos')
+            const todos = await response.json();
+            const todoList = document.getElementById('todoList');
+            todoList.innerHTML = todos.map(todo => `
+                <div class="todo">
+                    <input type="checkbox" ${todo.completed ? 'checked' : ''}
+                        onchange="toggleTodo(${todo.id})"
+                    <span>${todo.task}</span>
+                    <button onclick="deleteTodo(${todo.id})">Delete</button>
+                </div>
+            `).join('')
+        }
+
+        async function addTodo() {
+            const task = document.getElementById('taskInput').value;
+            await fetch('http://localhost:8000/todos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: Date.now(), task, completed: false })
+            });
+            fetchTodos();
+            document.getElementById('taskInput').value = '';
+        }
+
+        async function deleteTodo(id) {
+            await fetch(`http://localhost:8000/todos/${id}`, { method: 'DELETE' });
+            fetchTodos();
+        }
+
+        async function toggleTodo(id) {
+            const todo = { completed: event.target.checked };
+            await fetch(`http://localhost:8000/todos/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(todo)
+            });
+        }
+
+        fetchTodos();
+    </script>
+</body>
+</html>
