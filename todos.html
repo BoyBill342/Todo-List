@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Todo List</title>
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        input {
+            padding: 8px;
+            width: 70%;
+        }
+
+        button {
+            padding: 8px 16px;
+        }
+
+        .todo {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .logout {
+            float: right;
+            margin-bottom: 20px;
+        }
+    </style>
+    <meta charset="utf-8" />
+</head>
+<body>
+    <div class="logout">
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <h1>Todo List</h1>
+    <input type="text" id="taskInput" placeholder="Enter a task" />
+    <button onclick="addTodo()">Add Task</button>
+    <div id="todoList"></div>
+
+    <script>
+        // Check authentication on page load
+        if (!localStorage.getItem('access_token')) {
+            window.location.href = 'login.html';
+        }
+
+        async function handleRequest(fn) {
+            try {
+                return await fn();
+            } catch (error) {
+                if (error.response?.status === 401) {
+                    logout();
+                }
+                alert(error.message);
+                throw error;
+            }
+        }
+
+        async function fetchTodos() {
+            return handleRequest(async () => {
+                const response = await fetch('http://localhost:8000/todos/', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load todos');
+
+                const todos = await response.json();
+                const todoList = document.getElementById('todoList');
+                todoList.innerHTML = todos.map(todo => `
+                        <div class="todo">
+                            <input type="checkbox"
+                                   ${todo.completed ? 'checked' : ''}
+                                   onchange="toggleTodo(${todo.id}, this.checked)">
+                            <span>${todo.task}</span>
+                            <button onclick="deleteTodo(${todo.id})">Delete</button>
+                        </div>
+                    `).join('');
+            });
+        }
+
+        async function addTodo() {
+            const task = document.getElementById('taskInput').value;
+            if (!task.trim()) return;
+
+            await handleRequest(async () => {
+                const response = await fetch('http://localhost:8000/todos/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({ task })
+                });
+
+                if (!response.ok) throw new Error('Failed to add todo');
+
+                document.getElementById('taskInput').value = '';
+                fetchTodos();
+            });
+        }
+
+        async function deleteTodo(id) {
+            if (!confirm('Are you sure?')) return;
+
+            await handleRequest(async () => {
+                const response = await fetch(`http://localhost:8000/todos/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to delete todo');
+                fetchTodos();
+            });
+        }
+
+        async function toggleTodo(id, completed) {
+            await handleRequest(async () => {
+                const response = await fetch(`http://localhost:8000/todos/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({ completed })
+                });
+
+                if (!response.ok) throw new Error('Failed to update todo');
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            window.location.href = 'login.html';
+        }
+
+        // Initial load
+        fetchTodos();
+    </script>
+</body>
+</html>

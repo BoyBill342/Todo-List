@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
+    "\\core",
     "\\routers"
   ],
-  "SelectedNode": "\\routers\\todos.py",
+  "SelectedNode": "\\database.py",
   "PreviewInSolutionExplorer": false
 }

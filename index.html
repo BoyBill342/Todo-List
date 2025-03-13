@@ -20,12 +20,16 @@
     <script>
         async function fetchTodos() {
             const response = await fetch('http://localhost:8000/todos')
+            if (!response.ok) throw new Error('Network response is not ok');
             const todos = await response.json();
             const todoList = document.getElementById('todoList');
             todoList.innerHTML = todos.map(todo => `
                 <div class="todo">
-                    <input type="checkbox" ${todo.completed ? 'checked' : ''}
-                        onchange="toggleTodo(${todo.id})"
+                    <input type="checkbox"
+                           id="todoCheckbox_${todo.id}"
+                           name="completed"
+                           ${todo.completed ? 'checked' : ''}
+                           onchange="toggleTodo(${todo.id})">
                     <span>${todo.task}</span>
                     <button onclick="deleteTodo(${todo.id})">Delete</button>
                 </div>

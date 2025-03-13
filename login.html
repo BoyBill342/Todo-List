@@ -1,0 +1,45 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+</head>
+<body>
+    <h2>Login</h2>
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
+    <a href="register.html">Create Account</a>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:8000/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('access_token', data.access_token);
+                    window.location.href = 'todos.html';
+                } else {
+                    alert('Login failed: Invalid credentials');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Login failed');
+            }
+        });
+    </script>
+</body>
+</html>
