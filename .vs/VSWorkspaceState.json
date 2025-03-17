@@ -4,6 +4,6 @@
     "\\core",
     "\\routers"
   ],
-  "SelectedNode": "\\database.py",
+  "SelectedNode": "\\routers\\auth.py",
   "PreviewInSolutionExplorer": false
 }
