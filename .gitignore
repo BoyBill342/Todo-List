@@ -2,6 +2,7 @@
 .ipynb_checkpoints
 .mypy_cache
 .vscode
+/.vs
 __pycache__
 .pytest_cache
 htmlcov
@@ -10,7 +11,7 @@ site
 .coverage*
 coverage.xml
 .netlify
-test.db
+todos.db
 log.txt
 Pipfile.lock
 env3.*

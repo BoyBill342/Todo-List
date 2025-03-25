@@ -30,7 +30,7 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
-app.include_router(auth.router)
+app.include_router(auth.router, prefix="/auth")
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):

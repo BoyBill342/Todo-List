@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from core.security import (
     verify_password,
     create_access_token,
+    create_refresh_token,
     get_password_hash
 )
 from core.dependencies import get_current_user
@@ -38,7 +39,7 @@ async def login(
         )
     
     access_token = create_access_token(data={"sub": user.username})
-    refresh_token = create_access_token(data={"sub": user.username})
+    refresh_token = create_refresh_token(data={"sub": user.username})
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
@@ -64,10 +65,14 @@ async def register(
     
     return {"message": "User created successfully"}
 
+class TokenRefreshRequest(BaseModel):
+    refresh_token: str
+
 @router.post("/refresh")
-async def refresh_token(refresh_token: str):
+async def refresh_token(token_data: TokenRefreshRequest):
     try:
-        payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        # Decode the refresh token from the request body
+        payload = jwt.decode(token_data.refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid refresh token")
